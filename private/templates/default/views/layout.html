@@ -71,6 +71,9 @@
    </div>
   {{pass}}
   <div {{if current.menu.options is not None:}}class='rightside'{{pass}}>
+   <div class='wheader'>
+    {{if request.vars.wf_id:}}{{=wheader}}{{pass}}
+   </div>
    <div class='col1'>
     {{if response.error:}}<div class='error'>{{=response.error}}</div>{{pass}}
     {{if response.warning:}}<div class='warning'>{{=response.warning}}</div>{{pass}}

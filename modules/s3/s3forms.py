@@ -345,22 +345,56 @@ class S3SQLDefaultForm(S3SQLForm):
                              _href=response.s3.cancel,
                              _class="action-lnk"))
 
-        # Generate the form
         if record is None:
             record = record_id
-        form = SQLFORM(table,
-                       record = record,
-                       record_id = record_id,
-                       readonly = readonly,
-                       comments = not readonly,
-                       deletable = False,
-                       showid = False,
-                       upload = download_url,
-                       labels = labels,
-                       formstyle = formstyle,
-                       separator = "",
-                       submit_button = settings.submit_button,
-                       buttons = buttons)
+
+
+        if request.vars.wf_id:
+            w = request.vars.wf_id.split(":")
+            if len(w)<1:
+                # extract uuid form database
+                s3db = current.s3db
+                db = current.db
+                table = s3db.workflow_status
+                query = (table.user_id == current.auth.user_id) & \
+                        (table.name == wf)
+                uid = db(query).select().last().uuid
+                uid = uid.split(":")[2]
+            else:
+                uid = w[1]
+            wf_id = request.vars.wf_id = "%s:%s"%(w[0],uid)
+            hidden = dict(wf_uid = wf_id)
+            form = SQLFORM(table,
+                           record = record,
+                           record_id = record_id,
+                           readonly = readonly,
+                           comments = not readonly,
+                           deletable = False,
+                           showid = False,
+                           upload = download_url,
+                           labels = labels,
+                           formstyle = formstyle,
+                           separator = "",
+                           submit_button = settings.submit_button,
+                           buttons = buttons,
+                           hidden = hidden
+                           )
+
+	else:
+            # Generate the form
+            form = SQLFORM(table,
+                           record = record,
+                           record_id = record_id,
+                           readonly = readonly,
+                           comments = not readonly,
+                           deletable = False,
+                           showid = False,
+                           upload = download_url,
+                           labels = labels,
+                           formstyle = formstyle,
+                           separator = "",
+                           submit_button = settings.submit_button,
+                           buttons = buttons)
 
         # Style the Submit button, if-requested
         if settings.submit_style and not settings.custom_submit:
@@ -846,17 +880,45 @@ class S3SQLCustomForm(S3SQLForm):
 
         # Render the form
         tablename = self.tablename
-        form = SQLFORM.factory(*formfields,
-                               record = data,
-                               showid = False,
-                               labels = labels,
-                               formstyle = formstyle,
-                               table_name = tablename,
-                               upload = "default/download",
-                               readonly = readonly,
-                               separator = "",
-                               submit_button = settings.submit_button,
-                               buttons = buttons)
+        if request.vars.wf_id:
+            w = request.vars.wf_id.split(":")
+            if len(w)<1:
+                # extract uuid form database
+                s3db = current.s3db
+                table = s3db.workflow_status
+                query = (table.user_id == current.auth.user_id) & \
+                        (table.name == wf)
+                uid = db(query).select().last().uuid
+                uid = uid.split(":")[2]
+            else:
+                uid = w[1]
+            wf_id = request.vars.wf_id = "%s:%s"%(w[0],uid)
+            hidden = dict(wf_uid = wf_id)
+            form = SQLFORM.factory(*formfields,
+                                   record = data,
+                                   showid = False,
+                                   labels = labels,
+                                   formstyle = formstyle,
+                                   table_name = tablename,
+                                   upload = "default/download",
+                                   readonly = readonly,
+                                   separator = "",
+                                   submit_button = settings.submit_button,
+                                   buttons = buttons,
+                                   hidden = hidden)
+
+        else:
+            form = SQLFORM.factory(*formfields,
+                                   record = data,
+                                   showid = False,
+                                   labels = labels,
+                                   formstyle = formstyle,
+                                   table_name = tablename,
+                                   upload = "default/download",
+                                   readonly = readonly,
+                                   separator = "",
+                                   submit_button = settings.submit_button,
+                                   buttons = buttons)
 
         # Style the Submit button, if-requested
         if settings.submit_style and not settings.custom_submit:

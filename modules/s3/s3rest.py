@@ -933,11 +933,23 @@ class S3Request(object):
                         current.session.error = self.ERROR.BAD_RECORD
                         redirect(URL(r=self, c=self.prefix, f=self.name))
 
+        wf_preprocess = None
+        wf_postprocess = None
+        if "wf_id" in self.vars:
+            from s3.s3workflow import S3Workflow
+            S3Workflow().execute(self)
+            if hooks is not None:
+                wf_preprocess = hooks.get("wf_prep")
+                wf_postprocess = hooks.get("wf_postp")
+
+
         # Pre-process
         if hooks is not None:
             preprocess = hooks.get("prep", None)
         if preprocess:
             pre = preprocess(self)
+            if wf_preprocess:
+                pre = wf_preprocess(self)
             if pre and isinstance(pre, dict):
                 bypass = pre.get("bypass", False) is True
                 output = pre.get("output", None)
@@ -1001,6 +1013,8 @@ class S3Request(object):
             postprocess = hooks.get("postp", None)
         if postprocess is not None:
             output = postprocess(self, output)
+            if wf_postprocess:
+                output = wf_postprocess(self, output)
         if output is not None and isinstance(output, dict):
             # Put a copy of r into the output for the view
             # to be able to make use of it
@@ -1017,13 +1031,17 @@ class S3Request(object):
                     if form.errors:
                         return output
 
+            if self.vars.wf_id:
+                links = self.workflow_cnode.get_node_actions(self)
+                if len(links) < 2 and len(links)>0:
+                    self.next = links[0]["href"]
+
             session = current.session
-            session.flash = response.flash
-            session.confirmation = response.confirmation
+
             session.error = response.error
             session.warning = response.warning
             redirect(self.next)
-
+            
         return output
 
     # -------------------------------------------------------------------------
@@ -2219,6 +2237,23 @@ class S3Method(object):
             @note: overload this method in subclasses if you don't want
                    additional view variables to be added automatically
         """
+
+        if hasattr(r.vars, "wf_id"):
+            
+            from s3workflow import S3Workflow, S3WorkflowHeader
+
+            if isinstance(output, dict):
+                form = output.get("form", None)
+                if form:
+                    if not hasattr(form, "errors"):
+                        form = form[0]
+                    if form.errors:
+                        S3Workflow().execute(r, errors = True)
+                        r.werror = True                        
+
+            if len(r.vars.wf_id.split(":")) < 2 or r.workflow_cnode.wf_id == r.vars.wf_id: 
+                if not hasattr(attr,"wheader"):
+                    attr["wheader"] = S3WorkflowHeader()
 
         if r.interactive and isinstance(output, dict):
             for key in attr:

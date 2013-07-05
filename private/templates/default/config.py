@@ -846,4 +846,5 @@ settings.modules = OrderedDict([
     #       restricted = False,
     #       module_type = None,
     #   )),
+    ("workflow",Storage(name_nice = T("workflow"), restricted = False)),
 ])
