@@ -91,3 +91,16 @@ class S3WorkflowConfig(object):
                Exit() 
 
 
+    # ==========================================================================================
+
+    def reqmanagement(self):
+
+        N = S3Workflow
+        Exit = S3WorkflowExitNode
+        s3db = current.s3db
+        s3 = current.response.s3
+
+
+    return N("new", display_text = "welcome to request management workflow").handle(controller="req",
+                                                                                    function="req",
+                                                                                    action_text="asv")

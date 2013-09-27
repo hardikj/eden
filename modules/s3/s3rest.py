@@ -2238,10 +2238,9 @@ class S3Method(object):
                    additional view variables to be added automatically
         """
 
-        if hasattr(r.vars, "wf_id"):
-            
+        if r.vars.wf_id:
             from s3workflow import S3Workflow, S3WorkflowHeader
-
+            w_id = None
             if isinstance(output, dict):
                 form = output.get("form", None)
                 if form:
@@ -2249,9 +2248,10 @@ class S3Method(object):
                         form = form[0]
                     if form.errors:
                         S3Workflow().execute(r, errors = True)
-                        r.werror = True                        
-
-            if len(r.vars.wf_id.split(":")) < 2 or r.workflow_cnode.wf_id == r.vars.wf_id: 
+                        r.werror = True
+            if hasattr(r.vars, "wf_id"):
+                wid = r.vars.wf_id.split(":")                     
+            if len(wid) < 2 or r.workflow_cnode.wf_id == r.vars.wf_id: 
                 if not hasattr(attr,"wheader"):
                     attr["wheader"] = S3WorkflowHeader()
 

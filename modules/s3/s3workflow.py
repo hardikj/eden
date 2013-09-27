@@ -90,6 +90,8 @@ class S3Workflow(object):
             @param postp = postp for Node
             @param prep = prep for Node
             @param display_text = text to diplay in the as information
+            @param attr = dictionary of HTML and text that get passed 
+                          to default wheader
         """
 
         self.actions = []
@@ -225,7 +227,8 @@ class S3Workflow(object):
         if cnode.status: 
             (match,action) = self.match_action(cnode, request, workflow)
         else:
-            # Match nodes combinations like (N() | N() | N()) with correct event
+            # Match nodes combinations like (N() | N() | N()) 
+            # with correct event
             cnode = self.match_node(cnode, request )
             if cnode:
                 match = True
@@ -327,8 +330,8 @@ class S3Workflow(object):
     # -----------------------------------------------------------------------
     def match_node(self, root, r, mnode = None):
         """
-            Recursive function match nodes combinations like (N() | N() | N())
-            with current event
+            Recursive function match nodes combinations 
+            like (N() | N() | N()) with current event
             @param root = the root node
             @param r = current request
             @param mnode = node that got matched
@@ -434,7 +437,10 @@ class S3Workflow(object):
         if hasattr(root, "left") and hasattr(root, "right"):
             if fnode is True:
                 if root.op is not "or":
-                    cnode = self.get_current_node(root.left, status, cnode, fnode=True)
+                    cnode = self.get_current_node(root.left, 
+                                                  status, 
+                                                  cnode, 
+                                                  fnode=True)
                 else:
                     cnode = root
             elif fnode is False:
@@ -449,7 +455,7 @@ class S3Workflow(object):
             cnode = root
         return cnode
 
-    # -----------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def get_node(self, root, status):
         """
             Returns next node from the workflow configuration
@@ -507,11 +513,16 @@ class S3Workflow(object):
             link = URL(c = c, f = f, args = args, vars = {"wf_id" : wf_id})
 
             if action_text: 
-                links.append({"href":link, "show_ad":show_ad, "action_text":action_text})
+                links.append({"href":link, 
+                              "show_ad":show_ad, 
+                              "action_text":action_text})
             elif next_status:
-                links.append({"href":link, "show_ad":show_ad, "action_text":next_status})
+                links.append({"href":link, 
+                              "show_ad":show_ad, 
+                              "action_text":next_status})
             else:
-                links.append({"href":link, "show_ad":show_ad})
+                links.append({"href":link,  
+                              "show_ad":show_ad})
 
         return links
  
@@ -543,8 +554,16 @@ class S3Workflow(object):
                 pcount = self.get_current_progress(root.right, status, count, pcount) 
                 pcount = self.get_current_progress(root.left, status, count, pcount)
             elif root.op == "or":    
-                pcount = self.get_current_progress(root.right, status, count, pcount, nocount = True) 
-                pcount = self.get_current_progress(root.left, status, count, pcount, nocount = True)
+                pcount = self.get_current_progress(root.right, 
+                                                   status, 
+                                                   count, 
+                                                   pcount, 
+                                                   nocount = True) 
+                pcount = self.get_current_progress(root.left, 
+                                                   status, 
+                                                   count, 
+                                                   pcount, 
+                                                   nocount = True)
         elif root.status == status:
             pcount = count
 
@@ -561,7 +580,10 @@ class S3Workflow(object):
         total = self.calculate_total(self.workflow, 0)
         total = total
         status = cnode.status
-        progress = self.get_current_progress(cnode.workflow, status, count = 0, pcount = 0) - 1
+        progress = self.get_current_progress(cnode.workflow, 
+                                             status, 
+                                             count = 0, 
+                                             pcount = 0) - 1
         progress = total - (progress)
         progress = float(progress)/float(total) * 100
         return progress 
@@ -647,18 +669,24 @@ class S3WorkflowHeader(object):
                      for l in olinks:
                          at = l.get("action_text", "Next")
                          if l["show_ad"] is True:
-                             ol.append(A(T(at), _href=l["href"], _class = "workflow_btns"))
+                             ol.append(A(T(at), _href=l["href"], 
+                                                _class = "workflow_btns"))
                     
                 if len(links) < 2:
                     href = links[0]["href"]
                     at = links[0].get("action_text", "Next")
                     if r.http=="GET" and r.method in ["create"] or r.werror is True: 
-                        wheader = DIV(DIV(A(T(at) ,_class = "workflow_non_active_btn"), ol, _class = "workflow_btns_container")) 
+                        wheader = DIV(DIV(A(T(at), _class = "workflow_non_active_btn"), 
+                                          ol, 
+                                          _class = "workflow_btns_container")) 
                     else:
-                        wheader = DIV(A(T(at), _href=href, _class = "workflow_btns" ), ol, _class = "workflow_btns_container")
+                        wheader = DIV(A(T(at), _href=href, _class = "workflow_btns" ), 
+                                      ol,
+                                      _class = "workflow_btns_container")
                 else:
                     href = links
                     btn = DIV(_class = "workflow_btns_container")
+
                     for l in href:
                         at = l.get("action_text", "Next")
                         if r.http=="GET" and r.method=="create":
@@ -670,16 +698,17 @@ class S3WorkflowHeader(object):
                     wheader = DIV() 
                     wheader.append(btn)
             
-            ad = DIV(_id="attr_contents")
+            ad = DIV(_id = "attr_contents")
             if hasattr(cnode, "attr"):
                 for i in cnode.attr:
-                    ad.append(DIV(cnode.attr[i], _id=i))
+                    ad.append(DIV(cnode.attr[i], _id = i))
 
-            exit_btn = DIV(A(T("Exit"), _href=URL("default","index") ), _id="workflow_exit_btn" )
+            exit_btn = DIV(A(T("Exit"), _href = URL("default","index") ),
+                           _id = "workflow_exit_btn" )
             
 
             # Add workflow information div
-            wi = DIV("%s"%(cnode.text),_id="workflow_info")
+            wi = DIV("%s"%(cnode.text),_id = "workflow_info")
 
             # Adding Progress Bar
             pb = S3WorkflowProgressBarWidget() 
@@ -712,7 +741,11 @@ class S3WorkflowProgressBarWidget(object):
         s3.jquery_ready.append(
 '''$(function() {$( "#progressbar" ).progressbar({value: %s});});'''%progress)
         
-        pb =  DIV( DIV("Progress", _id="progress_btn", _class = "ui-progressbar-value ui-widget-header ui-corner-left"), 
-                   DIV(DIV(T("Workflow - %s"%cnode.name), _id="progress-label"), _id="progressbar"), _id="pb_container")
+        pb =  DIV( DIV("Progress", 
+                       _id="progress_btn", 
+                       _class = "ui-progressbar-value ui-widget-header ui-corner-left"), 
+                   DIV(DIV(T("Workflow - %s"%cnode.name), _id="progress-label"), 
+                           _id="progressbar"), 
+                       _id="pb_container")
         return pb
 # END ======================================================================
