@@ -41,9 +41,13 @@ class S3WorkflowModel(S3Model):
 
     def model(self):
 
+        T = current.T
         auth = current.auth
         define_table = self.define_table
         db = current.db
+        s3db = current.s3db
+        add_component = self.add_component
+        super_link = self.super_link
 
         we_types = Storage(project_task = T("Project Task"))
 
